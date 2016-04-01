@@ -1,0 +1,33 @@
+class MigrateTranslateable<%= table_name.camelize + field_name.camelize %> < ActiveRecord::Migration<%= migration_version %>
+  def change
+    reversible do |dir|
+      dir.up do
+        add_column :<%= table_name %>, :<%= field_name + '_t' %>, :jsonb, null: false, default: '{}'
+        execute <<-SQL
+        UPDATE <%= table_name %> AS m1
+        SET <%= field_name + '_t' %> = (
+          SELECT row_to_json(t) FROM (
+            SELECT <%= field_name %> AS <%= locale %> FROM <%= table_name %> AS m2 WHERE m1.id = m2.id
+          ) t
+        )::jsonb;
+        SQL
+        remove_column :<%= table_name %>, :<%= field_name %>
+        rename_column :<%= table_name %>, :<%= field_name + '_t' %>, :<%= field_name %>
+        add_index :<%= table_name %>, :<%= field_name %>, using: :gin
+      end
+
+      dir.down do
+        add_column :<%= table_name %>, :<%= field_name + '_t' %>, :string, null: false, default: ''
+        execute <<-SQL
+        UPDATE <%= table_name %> AS m1
+        SET <%= field_name + '_t' %> = (
+          SELECT <%= field_name %>->>'<%= locale %>' AS <%= field_name %> FROM <%= table_name %> AS m2 WHERE m1.id = m2.id
+        );
+        SQL
+        remove_column :<%= table_name %>, :<%= field_name %>
+        rename_column :<%= table_name %>, :<%= field_name + '_t' %>, :<%= field_name %>
+        add_index :<%= table_name %>, :<%= field_name %>
+      end
+    end
+  end
+end

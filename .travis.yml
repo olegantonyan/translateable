@@ -1,0 +1,19 @@
+language: ruby
+rvm:
+  - 2.2.2
+
+gemfile:
+  - gemfiles/4.2.gemfile
+  - gemfiles/5.0.gemfile
+
+script:
+  - bundle exec rspec
+  - bundle exec rubocop
+
+before_install: gem install bundler -v 1.11.2
+
+services:
+  - postgresql
+
+addons:
+  postgresql: "9.4"

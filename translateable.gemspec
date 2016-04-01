@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'Allows to store text data in different languages.'
   spec.description   = "Similar to globalize, but uses PostgreSQL's JSONB to store data in a single field. No additional tables required. Very thin abstraction"
-  spec.homepage      = 'https://github.com/olegantonyan/translateable_data'
+  spec.homepage      = 'https://github.com/olegantonyan/translateable'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }

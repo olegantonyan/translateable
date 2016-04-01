@@ -3,11 +3,11 @@
 [![Build Status](https://travis-ci.org/olegantonyan/translateable.svg)](https://travis-ci.org/olegantonyan/translateable)
 [![Gem Version](https://badge.fury.io/rb/translateable.svg)](https://badge.fury.io/rb/translateable)
 
-Allows you to store text data in multiple languages with your ActiveRecord models. Similar to [globalize](https://github.com/globalize/globalize), but have a few differences:
+Allows you to store text data in multiple languages with your ActiveRecord models. Similar to [globalize](https://github.com/globalize/globalize), but with a few differences:
 
 1. Works with Rails 5
 2. Uses single field in the table. No additional tables required to store translated data. PostgreSQL 9.4 is required to do this (JSONB)
-3. Provides easy integration with forms using nested attributes so you can create records with multiple translations in one form. Together with [nested_form_fields](https://github.com/ncri/nested_form_fields) you can dynamically add/delete/update tranlations without a single line of JavaScript.
+3. Provides easy integration with forms using nested attributes so you can create records with multiple translations in one form. Together with [nested_form_fields](https://github.com/ncri/nested_form_fields) you can dynamically add/delete/update translations without a single line of JavaScript.
 
 ```ruby
 I18n.locale = :en
@@ -22,7 +22,7 @@ I18n.locale = :en
 post.title #=> hello
 ```
 
-It adds very thin abstraction layer on top of JSONB field. All data is stored in a simple JSON structure: `{ "locale_name": "data" }`. JSONB can be indexed (this is a main reason why use it instead of just JSON, which is available in previous postgres versions).
+It adds very thin abstraction layer on top of JSONB field. All data is stored in a simple JSON structure: `{ "locale_name": "data" }`. JSONB can be indexed (this is the main reason to ​use​ it instead of just JSON, ​available​ in earlier Postgres versions).
 
 ## Requirements
 
@@ -81,7 +81,7 @@ You can pass multiple attributes:
 translateable :title, :body
 ```
 
-If there is no translation for a selected locale, than `I18n.default_locale` will be used. If there is no translation for `I18n.default_locale`, than first available will be used.
+If there is no translation for a selected locale, than `I18n.default_locale` will be used. If there is no translation for `I18n.default_locale`, than the first available ​one will be used.
 
 You can assign all locales data as a hash at once:
 ```ruby
@@ -130,11 +130,11 @@ end
 # `translateable_permitted_attributes` method provides strong_params for all translateable attributes
 # for example with `title` attribute those will be: `title_translateable_attributes: [:locale, :data, :_destroy]`
 ```
-Now you can add/delete/update `title` attribute value in different languages via single form.
+Now you can add/delete/update `title` attribute value in different languages via a single form.
 
 ### Migration
 
-Attributes must exist with `JSONB` type in database, so create a migration:
+Attributes must exist with `JSONB` type in a database, so create a migration:
 ```ruby
 class AddTitleToPosts < ActiveRecord::Migration
   def change
@@ -143,11 +143,11 @@ class AddTitleToPosts < ActiveRecord::Migration
 end
 ```
 
-If you already have a data and want to migrate it to new translateable structure, use provided generator:
+If you already have data​ and you want to migrate it to a new translateable structure, use ​a generator provided:
 ```
 bin/rails generate translateable:migration posts title
 ```
-This will create a reversible migration for data in `title` field of the `posts` table. By default, existent data will be moved into `I18n.default_locale`. If you want to use another locale, provide it as third argument:
+This will create a reversible migration for data in `title` field of the `posts` table. By default, the existent data will be moved into `I18n.default_locale`. If you want to use another locale, provide it as a third argument:
 ```
 bin/rails generate translateable:migration posts title ru
 ```
@@ -213,12 +213,12 @@ module JsonbQuerable
 end
 ```
 
-Refer to [postgres documentation](http://www.postgresql.org/docs/9.4/static/functions-json.html).
+Refer to the [Postgres documentation](http://www.postgresql.org/docs/9.4/static/functions-json.html).
 
 ## TODO
 
 - Add options (fallback locales lookup behavior maybe?)
-- More clever database management for testing (temp schema or so)
+- More clever database management for testing (temp schema or similar)
 
 ## Development
 

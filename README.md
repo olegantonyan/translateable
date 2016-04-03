@@ -205,8 +205,7 @@ module JsonbQuerable
       if case_sens
         where("EXISTS (SELECT 1 FROM jsonb_each_text(#{ta}) j WHERE j.value LIKE ?)", "%#{value}%")
       else
-        q = "%#{Unicode.downcase(value.to_s)}%" # Unicode came from 'unicode' gem https://github.com/blackwinter/unicode
-        where("EXISTS (SELECT 1 FROM jsonb_each_text(#{ta}) j WHERE lower(j.value) LIKE ?)", q)
+        where("EXISTS (SELECT 1 FROM jsonb_each_text(#{ta}) j WHERE lower(j.value) LIKE lower(?))", "%#{value}%")
       end
     }
   end

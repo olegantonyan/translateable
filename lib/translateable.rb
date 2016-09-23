@@ -21,7 +21,7 @@ module Translateable
     def translateable_sanity_check(attr)
       attr = attr.to_s
       raise ArgumentError, "no such column '#{attr}' in '#{name}' model" unless column_names.include?(attr)
-      raise ArgumentError, "'#{attr}' column must be of JSONB type" unless columns_hash[attr].type.to_s.casecmp('jsonb') == 0
+      raise ArgumentError, "'#{attr}' column must be of JSONB type" unless columns_hash[attr].type.to_s.casecmp('jsonb').zero?
     end
 
     def define_translateable_strong_params(*attrs)

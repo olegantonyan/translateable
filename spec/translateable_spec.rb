@@ -112,6 +112,20 @@ describe Translateable do
         expect(object.title).to eq 'прыгает через'
       end
     end
+
+    it 'should return nil if not the correct language using strict' do
+      I18n.locale = :en
+      object = TestModel.create!(title: 'The Krankenwagen')
+      I18n.with_locale('en') do
+        expect(object.title(strict: true)).to eq 'The Krankenwagen'
+      end
+      I18n.with_locale('ru') do
+        expect(object.title(strict: true)).to eq nil
+      end
+      I18n.with_locale('it') do
+        expect(object.title).to eq 'The Krankenwagen'
+      end
+    end
   end
 
   describe 'errors' do

@@ -81,7 +81,16 @@ You can pass multiple attributes:
 translateable :title, :body
 ```
 
-If there is no translation for a selected locale, than `I18n.default_locale` will be used. If there is no translation for `I18n.default_locale`, than the first available ​one will be used.
+If there is no translation for a selected locale, than `I18n.default_locale` will be used. If there is no translation for `I18n.default_locale`, than the first available ​one will be used. You can override this behavior with `strict` option, in this case you'll get `nil` if there is no translation for the selected locale:
+```ruby
+I18n.locale = :en
+post = Post.create(title: 'hello')
+post.title #=> hello
+
+I18n.locale = :ru
+post.title #=> hello
+post.title(strict: true) #=> nil
+```
 
 You can assign all locales data as a hash at once:
 ```ruby

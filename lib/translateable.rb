@@ -51,9 +51,9 @@ module Translateable
         end
       end
 
-      define_method(attr) do
+      define_method(attr) do |**args|
         value = send("#{attr}_fetch_translateable")
-        value[I18n.locale] || value[I18n.default_locale] || value.values.first
+        value[I18n.locale] || (value[I18n.default_locale] unless args[:strict]) || (value.values.first unless args[:strict])
       end
 
       define_method("#{attr}=") do |arg|

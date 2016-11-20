@@ -2,7 +2,7 @@ class MigrateTranslateable<%= table_name.camelize + field_name.camelize %> < Act
   def change
     reversible do |dir|
       dir.up do
-        add_column :<%= table_name %>, :<%= field_name + '_t' %>, :jsonb, null: false, default: '{}'
+        add_column :<%= table_name %>, :<%= field_name + '_t' %>, :jsonb, null: false, default: {}
         execute <<-SQL
         UPDATE <%= table_name %> AS m1
         SET <%= field_name + '_t' %> = (

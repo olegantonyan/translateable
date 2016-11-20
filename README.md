@@ -147,7 +147,7 @@ Attributes must exist with `JSONB` type in a database, so create a migration:
 ```ruby
 class AddTitleToPosts < ActiveRecord::Migration
   def change
-    add_column :posts, :title, :jsonb, null: false, default: '{}'
+    add_column :posts, :title, :jsonb, null: false, default: {}
   end
 end
 ```

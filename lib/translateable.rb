@@ -19,6 +19,7 @@ module Translateable
     end
 
     def translateable_sanity_check(attr)
+      return unless database_connection_exists?
       attr = attr.to_s
       raise ArgumentError, "no such column '#{attr}' in '#{name}' model" unless column_names.include?(attr)
       raise ArgumentError, "'#{attr}' column must be of JSONB type" unless columns_hash[attr].type.to_s.casecmp('jsonb').zero?
@@ -28,6 +29,12 @@ module Translateable
       define_singleton_method('translateable_permitted_attributes') do
         attrs.each_with_object([]) { |i, obj| obj << { "#{i}_translateable_attributes" => [:locale, :data, :_destroy] } }
       end
+    end
+
+    def database_connection_exists?
+      ActiveRecord::Base.connection_pool.with_connection(&:active?)
+    rescue
+      false
     end
 
     # rubocop: disable Metrics/AbcSize, Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity

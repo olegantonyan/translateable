@@ -223,6 +223,10 @@ end
 
 Refer to the [Postgres documentation](http://www.postgresql.org/docs/9.4/static/functions-json.html).
 
+### Troubleshooting
+
+If you're having problems with `translateable_sanity_check` you can disable those checks vie environment variable `DISABLE_TRANSLATEABLE_SANITY_CHECK=true`
+
 ## TODO
 
 - Add options (fallback locales lookup behavior maybe?)

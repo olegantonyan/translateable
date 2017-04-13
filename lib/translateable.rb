@@ -19,6 +19,7 @@ module Translateable
     end
 
     def translateable_sanity_check(attr)
+      return if ENV['DISABLE_TRANSLATEABLE_SANITY_CHECK']
       return unless database_connection_exists?
       attr = attr.to_s
       raise ArgumentError, "no such column '#{attr}' in '#{name}' model" unless column_names.include?(attr)
@@ -27,7 +28,7 @@ module Translateable
 
     def define_translateable_strong_params(*attrs)
       define_singleton_method('translateable_permitted_attributes') do
-        attrs.each_with_object([]) { |i, obj| obj << { "#{i}_translateable_attributes" => [:locale, :data, :_destroy] } }
+        attrs.each_with_object([]) { |i, obj| obj << { "#{i}_translateable_attributes" => %i(locale data destroy) } }
       end
     end
 

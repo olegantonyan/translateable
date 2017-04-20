@@ -73,6 +73,22 @@ describe Translateable do
         expect(object.title).to eq nil
       end
     end
+
+    it 'and when strict, it shouldnt return non-wanted locale' do
+      I18n.locale = :ru
+      object = TestModel.create!(title: 'привет мир')
+      I18n.with_locale('it') do
+        expect(object.title_strict).to eq nil
+      end
+    end
+
+    it 'but should return wanted locale' do
+      I18n.locale = :it
+      object = TestModel.create!(title: 'Viva Le Revolution')
+      I18n.with_locale('it') do
+        expect(object.title_strict).to eq 'Viva Le Revolution'
+      end
+    end
   end
 
   describe 'nested attributes' do

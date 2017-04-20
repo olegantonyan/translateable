@@ -64,6 +64,11 @@ module Translateable
         value[I18n.locale] || (value[I18n.default_locale] unless args[:strict]) || (value.values.first unless args[:strict])
       end
 
+      define_method("#{attr}_strict") do
+        value = send("#{attr}_fetch_translateable")
+        value[I18n.locale]
+      end
+
       define_method("#{attr}=") do |arg|
         value = arg.is_a?(Hash) ? arg : (self[attr] || {}).merge(I18n.locale => arg)
         self[attr] = value

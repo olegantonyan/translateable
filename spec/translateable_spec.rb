@@ -143,4 +143,21 @@ describe Translateable do
       expect(Translateable.translateable_attribute_by_name(:title)).to eq 'title_translateable'
     end
   end
+
+  describe 'raw hash access' do
+    it 'allows to access raw JSONB value as hash' do
+      I18n.config.available_locales = %i(en ru de it)
+
+      I18n.locale = :en
+      object = TestModel.create!(title: 'Hello World')
+      I18n.locale = :de
+      object.title = 'Hallo Welt'
+
+      %i(en ru de it).each do |locale|
+        I18n.with_locale(locale) do
+          expect(object[:title]).to eq('en' => 'Hello World', 'de' => 'Hallo Welt')
+        end
+      end
+    end
+  end
 end

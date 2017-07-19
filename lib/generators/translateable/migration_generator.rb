@@ -16,6 +16,7 @@ if defined?(Rails)
                            migration_version: migration_version,
                            table_name: name,
                            field_name: field_name,
+                           field_type: name.classify.constantize.columns_hash[field_name].type,
                            locale: locale)
       end
 

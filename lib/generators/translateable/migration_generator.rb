@@ -10,6 +10,7 @@ if defined?(Rails)
       argument :field_name, type: :string
       argument :locale, type: :string, default: I18n.default_locale
 
+      # rubocop: disable Metrics/AbcSize
       def create_migration_file
         raise ArgumentError, "given locale #{locale} is not available, check I18n.available_locales" unless I18n.available_locales.include?(locale.to_sym)
         migration_template('migration.rb.erb', "db/migrate/migrate_translateable_#{name}_#{field_name}.rb",
@@ -19,6 +20,7 @@ if defined?(Rails)
                            field_type: name.classify.constantize.columns_hash[field_name].type,
                            locale: locale)
       end
+      # rubocop: enable Metrics/AbcSize
 
       private
 

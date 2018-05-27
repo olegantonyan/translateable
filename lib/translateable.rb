@@ -28,7 +28,7 @@ module Translateable
 
     def define_translateable_strong_params(*attrs)
       define_singleton_method('translateable_permitted_attributes') do
-        attrs.each_with_object([]) { |i, obj| obj << { "#{i}_translateable_attributes" => %i(locale data destroy) } }
+        attrs.each_with_object([]) { |i, obj| obj << { "#{i}_translateable_attributes" => %i(locale data _destroy) } }
       end
     end
 

@@ -5,7 +5,7 @@ if defined?(Rails)
   module Translateable
     class MigrationGenerator < ActiveRecord::Generators::Base
       desc 'Create sample migration with translateable field'
-      source_root File.expand_path('../templates', __FILE__)
+      source_root File.expand_path('templates', __dir__)
 
       argument :field_name, type: :string
       argument :locale, type: :string, default: I18n.default_locale

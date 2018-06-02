@@ -34,7 +34,7 @@ module Translateable
 
     def database_connection_exists?
       ActiveRecord::Base.connection_pool.with_connection(&:active?)
-    rescue
+    rescue StandardError
       false
     end
 

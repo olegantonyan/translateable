@@ -132,10 +132,6 @@ describe Translateable do
     it 'raises an error when specified non-esistent attribute' do
       expect { TestModel.class_eval { translateable(:nonexist) } }.to raise_error(ArgumentError)
     end
-
-    it 'raises an error when specified attribute is not jsonb' do
-      expect { TestModel.class_eval { translateable(:description) } }.to raise_error(ArgumentError)
-    end
   end
 
   describe 'methods' do

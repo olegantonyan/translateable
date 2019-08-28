@@ -37,7 +37,7 @@ module Translateable
       false
     end
 
-    def define_translateable_methods(attr) # rubocop: disable Metrics/AbcSize, Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+    def define_translateable_methods(attr)
       define_method("#{attr}_fetch_translateable") do
         value = self[attr]
         return value.with_indifferent_access if !value.nil? && !value.empty?

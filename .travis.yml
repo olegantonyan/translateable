@@ -10,7 +10,6 @@ gemfile:
 
 script:
   - bundle exec rspec
-  - bundle exec rubocop
 
 before_install: gem install bundler
 

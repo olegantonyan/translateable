@@ -10,7 +10,7 @@ if defined?(Rails)
       argument :field_name, type: :string
       argument :locale, type: :string, default: I18n.default_locale
 
-      def create_migration_file # rubocop: disable Metrics/AbcSize
+      def create_migration_file
         raise ArgumentError, "given locale #{locale} is not available, check I18n.available_locales" unless I18n.available_locales.include?(locale.to_sym)
         migration_template('migration.rb.erb', "db/migrate/migrate_translateable_#{table_name}_#{field_name}.rb", migration_version: migration_version)
       end

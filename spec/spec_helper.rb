@@ -2,7 +2,6 @@ $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'translateable'
 require 'active_record'
 
-# rubocop: disable Metrics/MethodLength, Lint/HandleExceptions
 def prepare_database!
   db = 'translateable_test_db'.freeze
 
@@ -23,7 +22,6 @@ def prepare_database!
 
   migrate!
 end
-# rubocop: enable Metrics/MethodLength, Lint/HandleExceptions
 
 def migrate!
   ActiveRecord::Base.connection.create_table :test_models do |t|

@@ -17,16 +17,8 @@ if defined?(Rails)
 
       private
 
-      def rails4?
-        Rails.version.start_with?('4')
-      end
-
       def migration_version
-        if rails4?
-          ''
-        else
-          "[#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}]"
-        end
+        "[#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}]"
       end
     end
   end

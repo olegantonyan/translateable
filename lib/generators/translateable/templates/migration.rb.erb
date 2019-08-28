@@ -1,4 +1,4 @@
-class MigrateTranslateable<%= table_name.camelize + field_name.camelize %> < ActiveRecord::Migration<%= migration_version %>
+class MigrateTranslateable<%= table_name.capitalize + field_name.capitalize %> < ActiveRecord::Migration<%= migration_version %>
   def change
     reversible do |dir|
       dir.up do
@@ -13,13 +13,13 @@ class MigrateTranslateable<%= table_name.camelize + field_name.camelize %> < Act
         SQL
         remove_column :<%= table_name %>, :<%= field_name %>
         rename_column :<%= table_name %>, :<%= field_name + '_t' %>, :<%= field_name %>
-        <% if index_exists?(table_name, field_name) %>
+        <% if ActiveRecord::Base.connection.index_exists?(table_name, field_name) %>
         add_index :<%= table_name %>, :<%= field_name %>, using: :gin
         <% end %>
       end
 
       dir.down do
-        add_column :<%= table_name %>, :<%= field_name + '_t' %>, <%= field_type || ':string' %>, null: false, default: ''
+        add_column :<%= table_name %>, :<%= field_name + '_t' %>, :string, null: false, default: ''
         execute <<-SQL
         UPDATE <%= table_name %> AS m1
         SET <%= field_name + '_t' %> = (
@@ -28,7 +28,7 @@ class MigrateTranslateable<%= table_name.camelize + field_name.camelize %> < Act
         SQL
         remove_column :<%= table_name %>, :<%= field_name %>
         rename_column :<%= table_name %>, :<%= field_name + '_t' %>, :<%= field_name %>
-        <% if index_exists?(table_name, field_name) %>
+        <% if ActiveRecord::Base.connection.index_exists?(table_name, field_name) %>
         add_index :<%= table_name %>, :<%= field_name %>
         <% end %>
       end

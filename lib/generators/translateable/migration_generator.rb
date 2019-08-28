@@ -10,29 +10,22 @@ if defined?(Rails)
       argument :field_name, type: :string
       argument :locale, type: :string, default: I18n.default_locale
 
-      # rubocop: disable Metrics/AbcSize
-      def create_migration_file
+      def create_migration_file # rubocop: disable Metrics/AbcSize
         raise ArgumentError, "given locale #{locale} is not available, check I18n.available_locales" unless I18n.available_locales.include?(locale.to_sym)
-        migration_template('migration.rb.erb', "db/migrate/migrate_translateable_#{name}_#{field_name}.rb",
-                           migration_version: migration_version,
-                           table_name: name,
-                           field_name: field_name,
-                           field_type: name.classify.constantize.columns_hash[field_name].type,
-                           locale: locale)
+        migration_template('migration.rb.erb', "db/migrate/migrate_translateable_#{table_name}_#{field_name}.rb", migration_version: migration_version)
       end
-      # rubocop: enable Metrics/AbcSize
 
       private
 
-      def rails5?
-        Rails.version.start_with?('5')
+      def rails4?
+        Rails.version.start_with?('4')
       end
 
       def migration_version
-        if rails5?
-          "[#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}]"
-        else
+        if rails4?
           ''
+        else
+          "[#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}]"
         end
       end
     end

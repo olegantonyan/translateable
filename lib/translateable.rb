@@ -23,7 +23,6 @@ module Translateable
       return unless database_connection_exists?
       attr = attr.to_s
       raise ArgumentError, "no such column '#{attr}' in '#{name}' model" unless column_names.include?(attr)
-      raise ArgumentError, "'#{attr}' column must be of JSONB type" unless columns_hash[attr].type.to_s.casecmp('jsonb').zero?
     end
 
     def define_translateable_strong_params(*attrs)
@@ -38,8 +37,7 @@ module Translateable
       false
     end
 
-    # rubocop: disable Metrics/AbcSize, Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
-    def define_translateable_methods(attr)
+    def define_translateable_methods(attr) # rubocop: disable Metrics/AbcSize, Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       define_method("#{attr}_fetch_translateable") do
         value = self[attr]
         return value.with_indifferent_access if !value.nil? && !value.empty?
@@ -69,6 +67,5 @@ module Translateable
         self[attr] = value
       end
     end
-    # rubocop: enable Metrics/AbcSize, Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   end
 end

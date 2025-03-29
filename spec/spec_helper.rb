@@ -5,7 +5,7 @@ require 'active_record'
 def prepare_database!
   db = 'translateable_test_db'.freeze
 
-  ActiveRecord::Base.establish_connection(adapter: 'postgresql', database: 'template1', username: 'postgres')
+  ActiveRecord::Base.establish_connection(adapter: 'postgresql', database: 'template1', username: 'postgres', password: ENV['POSTGRES_PASSWORD'])
 
   begin
     ActiveRecord::Base.connection.drop_database(db)
@@ -13,7 +13,7 @@ def prepare_database!
   end
   ActiveRecord::Base.connection.create_database(db)
 
-  ActiveRecord::Base.establish_connection(adapter: 'postgresql', database: db, username: 'postgres')
+  ActiveRecord::Base.establish_connection(adapter: 'postgresql', database: db, username: 'postgres', password: ENV['POSTGRES_PASSWORD'])
 
   begin
     ActiveRecord::Base.connection.drop_table :test_models

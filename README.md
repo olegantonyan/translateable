@@ -1,6 +1,6 @@
 # Translateable
 
-[![Build Status](https://travis-ci.org/olegantonyan/translateable.svg)](https://travis-ci.org/olegantonyan/translateable)
+[![CI Ruby](https://github.com/olegantonyan/translateable/actions/workflows/tests.yml/badge.svg)](https://github.com/olegantonyan/translateable/actions/workflows/tests.yml)
 [![Gem Version](https://badge.fury.io/rb/translateable.svg)](https://badge.fury.io/rb/translateable)
 
 Allows you to store text data in multiple languages with your ActiveRecord models. Similar to [globalize](https://github.com/globalize/globalize), but with a few differences:

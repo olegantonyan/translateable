@@ -159,13 +159,12 @@ describe Translateable do
 
   describe 'attribute value object' do
     it 'returns array of objects with transations' do
-      I18n.config.available_locales = %i(en ru de it)
-
       I18n.locale = :en
       object = TestModel.create!(title: 'Hello World')
       I18n.locale = :ru
       object.update!(title: 'Привет мир')
 
+      expect(object.title_translateable.size).to eq(2)
       expect(object.title_translateable.first.locale).to eq('en')
       expect(object.title_translateable.first.data).to eq('Hello World')
       expect(object.title_translateable.last.locale).to eq('ru')

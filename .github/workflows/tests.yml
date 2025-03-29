@@ -27,13 +27,6 @@ jobs:
         ruby-version: ['3.2', '3.3', '3.4']
         gemfile: ['7.0', '7.1', '7.2', '8.0']
 
-    env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
-      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
-      # The hostname used to communicate with the PostgreSQL service container
-      POSTGRES_HOST: localhost
-      # The default PostgreSQL port
-      POSTGRES_PORT: 5432
-
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
@@ -41,3 +34,9 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
       - run: bundle install
       - run: bundle exec rspec
+        env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
+          BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
+          # The hostname used to communicate with the PostgreSQL service container
+          POSTGRES_HOST: localhost
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432

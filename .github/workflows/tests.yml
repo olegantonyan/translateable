@@ -33,6 +33,8 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
       - run: bundle install
+        env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
+          BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
       - run: bundle exec rspec
         env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
           BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile

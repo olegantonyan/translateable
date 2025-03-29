@@ -1,6 +1,5 @@
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 require 'translateable'
-require 'active_record'
 
 def prepare_database!
   db = 'translateable_test_db'.freeze

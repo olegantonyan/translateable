@@ -9,6 +9,8 @@ module Translateable
     "#{attr}_translateable"
   end
 
+  AttributeValue = Struct.new(:locale, :data)
+
   module ClassMethods
     def translateable(*attrs)
       attrs.each do |attr|
@@ -46,7 +48,7 @@ module Translateable
 
       define_method(Translateable.translateable_attribute_by_name(attr)) do
         value = send("#{attr}_fetch_translateable")
-        value.map { |k, v| OpenStruct.new(locale: k, data: v) }
+        value.map { |k, v| AttributeValue.new(locale: k, data: v) }
       end
 
       define_method("#{attr}_translateable_attributes=") do |arg|

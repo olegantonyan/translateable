@@ -225,7 +225,7 @@ Refer to the [Postgres documentation](http://www.postgresql.org/docs/9.4/static/
 
 ### Troubleshooting
 
-If you're having problems with `translateable_sanity_check` you can disable those checks vie environment variable `DISABLE_TRANSLATEABLE_SANITY_CHECK=true`
+If you're having problems with `translateable_sanity_check` due to non-existing database upon loading, you can disable those checks vie environment variable `DISABLE_TRANSLATEABLE_SANITY_CHECK=true` or by specifying `sanity_checks: false`, for example `translateable :title, sanity_checks: false`.
 
 ## TODO
 

@@ -12,9 +12,9 @@ module Translateable
   AttributeValue = Struct.new(:locale, :data)
 
   module ClassMethods
-    def translateable(*attrs)
+    def translateable(*attrs, sanity_checks: true)
       attrs.each do |attr|
-        translateable_sanity_check(attr)
+        translateable_sanity_check(attr) if sanity_checks
         define_translateable_methods(attr)
       end
       define_translateable_strong_params(*attrs)

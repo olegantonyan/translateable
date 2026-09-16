@@ -11,38 +11,30 @@ jobs:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
-        # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
-          # Maps tcp port 5432 on service container to the host
           - 5432:5432
 
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: ['3.2', '3.3', '3.4']
-        gemfile: ['7.0', '7.1', '7.2', '8.0']
-        exclude:
-        - ruby-version: '3.4'
-          gemfile: '7.0'
+        ruby-version: ['3.2', '3.3', '3.4', '4.0']
+        gemfile: ['7.0', '7.1', '7.2', '8.0', '8.1']
+
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_PASSWORD: postgres
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
-      - run: bundle install
-        env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
-          BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
+          bundler-cache: true
       - run: bundle exec rspec
-        env: # $BUNDLE_GEMFILE must be set at the job level, so it is set for all steps
-          BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
-          # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: localhost
-          # The default PostgreSQL port
-          POSTGRES_PORT: 5432
-          POSTGRES_PASSWORD: postgres

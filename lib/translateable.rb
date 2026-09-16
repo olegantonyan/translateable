@@ -9,7 +9,13 @@ module Translateable
     "#{attr}_translateable"
   end
 
-  AttributeValue = Struct.new(:locale, :data)
+  AttributeValue = Struct.new(:locale, :data, keyword_init: true) do
+    def _destroy; end
+
+    def persisted?
+      false
+    end
+  end
 
   module ClassMethods
     def translateable(*attrs, sanity_checks: true)
@@ -17,45 +23,48 @@ module Translateable
         translateable_sanity_check(attr) if sanity_checks
         define_translateable_methods(attr)
       end
-      define_translateable_strong_params(*attrs)
+      @translateable_attributes = (@translateable_attributes || []) | attrs
+    end
+
+    def translateable_attributes
+      inherited = superclass.respond_to?(:translateable_attributes) ? superclass.translateable_attributes : []
+      inherited | (@translateable_attributes || [])
+    end
+
+    def translateable_permitted_attributes
+      translateable_attributes.map { |attr| { "#{attr}_translateable_attributes" => %i(locale data _destroy) } }
     end
 
     def translateable_sanity_check(attr)
       return if ENV['DISABLE_TRANSLATEABLE_SANITY_CHECK']
-      return unless database_connection_exists?
+      return unless database_connection_exists? && table_exists?
       attr = attr.to_s
       raise ArgumentError, "no such column '#{attr}' in '#{name}' model" unless column_names.include?(attr)
     end
 
-    def define_translateable_strong_params(*attrs)
-      define_singleton_method('translateable_permitted_attributes') do
-        attrs.each_with_object([]) { |i, obj| obj << { "#{i}_translateable_attributes" => %i(locale data _destroy) } }
-      end
-    end
-
     def database_connection_exists?
-      ActiveRecord::Base.connection_pool.with_connection(&:active?)
+      connection_pool.with_connection(&:active?)
     rescue StandardError
       false
     end
 
     def define_translateable_methods(attr)
       define_method("#{attr}_fetch_translateable") do
-        value = self[attr]
-        return value.with_indifferent_access if !value.nil? && !value.empty?
-        (new_record? ? { I18n.locale => '' } : {}).with_indifferent_access
+        (self[attr] || {}).with_indifferent_access
       end
 
       define_method(Translateable.translateable_attribute_by_name(attr)) do
         value = send("#{attr}_fetch_translateable")
+        value = { I18n.locale.to_s => '' } if value.empty? && new_record?
         value.map { |k, v| AttributeValue.new(locale: k, data: v) }
       end
 
       define_method("#{attr}_translateable_attributes=") do |arg|
-        self[attr] = arg.each_with_object({}) do |i, obj|
-          hash = i.second
-          next if hash[:_destroy]
-          obj[hash[:locale]] = hash[:data]
+        entries = arg.respond_to?(:values) ? arg.values : arg
+        self[attr] = entries.each_with_object({}) do |entry, obj|
+          entry = entry.with_indifferent_access if entry.is_a?(Hash)
+          next if ActiveModel::Type::Boolean.new.cast(entry[:_destroy])
+          obj[entry[:locale].to_s] = entry[:data]
         end
       end
 
@@ -65,8 +74,7 @@ module Translateable
       end
 
       define_method("#{attr}=") do |arg|
-        value = arg.is_a?(Hash) ? arg : (self[attr] || {}).merge(I18n.locale => arg)
-        self[attr] = value
+        self[attr] = arg.respond_to?(:to_hash) ? arg.to_hash : (self[attr] || {}).merge(I18n.locale.to_s => arg)
       end
     end
   end

@@ -1,9 +1,12 @@
 require 'spec_helper'
 
 describe Translateable do
-  before :all do
-    I18n.available_locales = %i(en ru it)
-    I18n.default_locale = :en
+  def translateable_model(table = 'test_models', parent = ActiveRecord::Base, &block)
+    Class.new(parent) do
+      self.table_name = table
+      include Translateable unless self < Translateable
+      class_eval(&block) if block
+    end
   end
 
   it 'has a version number' do
@@ -23,7 +26,6 @@ describe Translateable do
   end
 
   it 'adds new locales to existent records' do
-    I18n.locale = :en
     object = TestModel.create!(title: 'the quick brown fox')
     I18n.locale = :ru
     object.title = 'прыгает через ленивую собаку'
@@ -36,22 +38,57 @@ describe Translateable do
     end
   end
 
-  it 'replaces all locales data when hash is assigned' do
-    I18n.locale = :en
-    object = TestModel.create!(title: 'jumps over the lazy dog')
-    object.title = { en: 'hello', ru: 'привет' }
-    object.save!
+  it 'updates value for current locale only' do
+    object = TestModel.create!(title: { en: 'hello', ru: 'привет' })
+    object.update!(title: 'hi')
     object.reload
 
-    expect(object.title).to eq 'hello'
-    I18n.with_locale(:ru) do
-      expect(object.title).to eq 'привет'
+    expect(object[:title]).to eq('en' => 'hi', 'ru' => 'привет')
+  end
+
+  it 'keeps multiple attributes independent' do
+    object = TestModel.create!(title: 'title', body: 'body')
+    I18n.with_locale(:ru) { object.update!(body: 'тело') }
+    object.reload
+
+    expect(object[:title]).to eq('en' => 'title')
+    expect(object[:body]).to eq('en' => 'body', 'ru' => 'тело')
+  end
+
+  describe 'hash assignment' do
+    it 'replaces all locales data' do
+      object = TestModel.create!(title: 'jumps over the lazy dog')
+      object.title = { en: 'hello', ru: 'привет' }
+      object.save!
+      object.reload
+
+      expect(object.title).to eq 'hello'
+      I18n.with_locale(:ru) do
+        expect(object.title).to eq 'привет'
+      end
+    end
+
+    it 'accepts string keys' do
+      object = TestModel.create!(title: { 'en' => 'hello', 'ru' => 'привет' })
+      expect(object.reload[:title]).to eq('en' => 'hello', 'ru' => 'привет')
+    end
+
+    it 'accepts hash with indifferent access' do
+      object = TestModel.create!(title: { en: 'hello' }.with_indifferent_access)
+      expect(object.reload[:title]).to eq('en' => 'hello')
+    end
+
+    it 'accepts permitted controller parameters' do
+      params = ActionController::Parameters.new(title: { en: 'hello', ru: 'привет' }).permit(title: %i(en ru))
+      object = TestModel.new
+      object.title = params[:title]
+      object.save!
+      expect(object.reload[:title]).to eq('en' => 'hello', 'ru' => 'привет')
     end
   end
 
   describe 'fallback locales' do
     it 'default locale if current locale does not exists' do
-      I18n.locale = :en
       object = TestModel.create!(title: 'hello world')
       I18n.with_locale('ru') do
         expect(object.title).to eq 'hello world'
@@ -72,6 +109,31 @@ describe Translateable do
       I18n.with_locale('it') do
         expect(object.title).to eq nil
       end
+    end
+
+    it 'nil for new record without translations' do
+      expect(TestModel.new.title).to eq nil
+      expect(TestModel.new.title(strict: true)).to eq nil
+    end
+  end
+
+  describe 'strict' do
+    it 'returns nil if there is no translation for current locale' do
+      object = TestModel.create!(title: 'The Krankenwagen')
+      I18n.with_locale('en') do
+        expect(object.title(strict: true)).to eq 'The Krankenwagen'
+      end
+      I18n.with_locale('ru') do
+        expect(object.title(strict: true)).to eq nil
+      end
+      I18n.with_locale('it') do
+        expect(object.title).to eq 'The Krankenwagen'
+      end
+    end
+
+    it 'does not fall back to first available locale' do
+      object = TestModel.create!(title: { ru: 'привет' })
+      expect(object.title(strict: true)).to eq nil
     end
   end
 
@@ -106,31 +168,107 @@ describe Translateable do
       object = TestModel.create!(title_translateable_attributes: { '0' => { locale: 'it', data: 'salti sopra' }, '1' => { locale: :ru, data: 'прыгает через' } })
       object.update(title_translateable_attributes: { '0' => { locale: 'it', data: 'salti sopra', _destroy: 1 }, '1' => { locale: :ru, data: 'прыгает через' } })
       I18n.with_locale(:it) do
-        expect(object.title).to eq 'прыгает через' # fallback to first available locale
+        expect(object.title).to eq 'прыгает через'
       end
       I18n.with_locale(:ru) do
         expect(object.title).to eq 'прыгает через'
       end
     end
 
-    it 'should return nil if not the correct language using strict' do
-      I18n.locale = :en
-      object = TestModel.create!(title: 'The Krankenwagen')
-      I18n.with_locale('en') do
-        expect(object.title(strict: true)).to eq 'The Krankenwagen'
+    it 'accepts string keys' do
+      object = TestModel.create!(title_translateable_attributes: { '0' => { 'locale' => 'it', 'data' => 'volpe veloce' } })
+      expect(object.reload[:title]).to eq('it' => 'volpe veloce')
+    end
+
+    it 'treats symbol and string locales as the same' do
+      object = TestModel.create!(title_translateable_attributes: { '0' => { locale: :it, data: 'volpe' }, '1' => { locale: 'it', data: 'volpe veloce' } })
+      expect(object.reload[:title]).to eq('it' => 'volpe veloce')
+    end
+
+    it 'accepts array of hashes' do
+      object = TestModel.create!(title_translateable_attributes: [{ locale: 'it', data: 'volpe' }, { locale: 'ru', data: 'лиса' }])
+      expect(object.reload[:title]).to eq('it' => 'volpe', 'ru' => 'лиса')
+    end
+
+    ['0', 'false', '', false, nil].each do |flag|
+      it "keeps translation when _destroy is #{flag.inspect}" do
+        object = TestModel.create!(title_translateable_attributes: { '0' => { locale: 'it', data: 'volpe', _destroy: flag } })
+        expect(object.reload[:title]).to eq('it' => 'volpe')
       end
-      I18n.with_locale('ru') do
-        expect(object.title(strict: true)).to eq nil
+    end
+
+    ['1', 'true', true, 1].each do |flag|
+      it "removes translation when _destroy is #{flag.inspect}" do
+        object = TestModel.create!(title_translateable_attributes: { '0' => { locale: 'it', data: 'volpe', _destroy: flag }, '1' => { locale: 'ru', data: 'лиса' } })
+        expect(object.reload[:title]).to eq('ru' => 'лиса')
       end
-      I18n.with_locale('it') do
-        expect(object.title).to eq 'The Krankenwagen'
-      end
+    end
+
+    it 'accepts permitted controller parameters' do
+      params = ActionController::Parameters.new(
+        title_translateable_attributes: {
+          '0' => { locale: 'en', data: 'hello', _destroy: '' },
+          '1' => { locale: 'ru', data: 'привет', _destroy: '0' },
+          '2' => { locale: 'it', data: 'ciao', _destroy: '1' }
+        }
+      ).permit(*TestModel.translateable_permitted_attributes)
+
+      object = TestModel.create!(params)
+      expect(object.reload[:title]).to eq('en' => 'hello', 'ru' => 'привет')
     end
   end
 
-  describe 'errors' do
-    it 'raises an error when specified non-esistent attribute' do
-      expect { TestModel.class_eval { translateable(:nonexist) } }.to raise_error(ArgumentError)
+  describe 'permitted attributes' do
+    it 'includes all attributes' do
+      expect(TestModel.translateable_permitted_attributes).to eq [
+        { 'title_translateable_attributes' => %i(locale data _destroy) },
+        { 'body_translateable_attributes' => %i(locale data _destroy) }
+      ]
+    end
+
+    it 'accumulates attributes from multiple macro calls' do
+      model = translateable_model do
+        translateable :title
+        translateable :body
+      end
+
+      expect(model.translateable_permitted_attributes.map(&:keys).flatten).to eq %w(title_translateable_attributes body_translateable_attributes)
+    end
+
+    it 'inherits attributes from parent class without leaking back' do
+      parent = translateable_model { translateable :title }
+      child = translateable_model('test_models', parent) { translateable :body }
+
+      expect(parent.translateable_permitted_attributes.map(&:keys).flatten).to eq %w(title_translateable_attributes)
+      expect(child.translateable_permitted_attributes.map(&:keys).flatten).to eq %w(title_translateable_attributes body_translateable_attributes)
+    end
+  end
+
+  describe 'sanity checks' do
+    it 'raises an error when specified non-existent attribute' do
+      expect { translateable_model { translateable(:nonexist) } }.to raise_error(ArgumentError, /nonexist/)
+    end
+
+    it 'can be disabled with an option' do
+      expect { translateable_model { translateable(:nonexist, sanity_checks: false) } }.not_to raise_error
+    end
+
+    it 'can be disabled with an environment variable' do
+      ENV['DISABLE_TRANSLATEABLE_SANITY_CHECK'] = 'true'
+      expect { translateable_model { translateable(:nonexist) } }.not_to raise_error
+    ensure
+      ENV.delete('DISABLE_TRANSLATEABLE_SANITY_CHECK')
+    end
+
+    it 'skips check when table does not exist yet' do
+      model = nil
+      expect { model = translateable_model('late_models') { translateable(:title) } }.not_to raise_error
+
+      ActiveRecord::Base.connection.create_table(:late_models) { |t| t.jsonb :title }
+      model.reset_column_information
+      expect(model.create!(title: 'hello').reload.title).to eq 'hello'
+    ensure
+      ActiveRecord::Base.connection.drop_table(:late_models, if_exists: true)
     end
   end
 
@@ -142,9 +280,6 @@ describe Translateable do
 
   describe 'raw hash access' do
     it 'allows to access raw JSONB value as hash' do
-      I18n.config.available_locales = %i(en ru de it)
-
-      I18n.locale = :en
       object = TestModel.create!(title: 'Hello World')
       I18n.locale = :de
       object.title = 'Hallo Welt'
@@ -158,8 +293,7 @@ describe Translateable do
   end
 
   describe 'attribute value object' do
-    it 'returns array of objects with transations' do
-      I18n.locale = :en
+    it 'returns array of objects with translations' do
       object = TestModel.create!(title: 'Hello World')
       I18n.locale = :ru
       object.update!(title: 'Привет мир')
@@ -169,6 +303,33 @@ describe Translateable do
       expect(object.title_translateable.first.data).to eq('Hello World')
       expect(object.title_translateable.last.locale).to eq('ru')
       expect(object.title_translateable.last.data).to eq('Привет мир')
+    end
+
+    it 'returns a blank translation for current locale on new record' do
+      I18n.with_locale(:ru) do
+        expect(TestModel.new.title_translateable.map(&:to_h)).to eq [{ locale: 'ru', data: '' }]
+      end
+    end
+
+    it 'returns no translations for persisted record without data' do
+      expect(TestModel.create!.title_translateable).to eq []
+    end
+
+    it 'can be built without arguments' do
+      value = Translateable::AttributeValue.new
+      expect([value.locale, value.data, value._destroy, value.persisted?]).to eq [nil, nil, nil, false]
+    end
+
+    it 'renders in nested form fields' do
+      object = TestModel.create!(title: { en: 'hello', ru: 'привет' })
+      html = ActionView::Base.empty.fields_for(:test_model, object) do |f|
+        f.fields_for(Translateable.translateable_attribute_by_name(:title)) do |ff|
+          ff.text_field(:data) + ff.hidden_field(:_destroy)
+        end
+      end
+
+      expect(html).to include('name="test_model[title_translateable_attributes][0][data]"', 'value="hello"')
+      expect(html).to include('name="test_model[title_translateable_attributes][1][data]"', 'value="привет"')
     end
   end
 end

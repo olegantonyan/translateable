@@ -1,4 +1,4 @@
-class MigrateTranslateable<%= table_name.capitalize + field_name.capitalize %> < ActiveRecord::Migration<%= migration_version %>
+class <%= migration_class_name %> < ActiveRecord::Migration<%= migration_version %>
   def change
     reversible do |dir|
       dir.up do
@@ -7,7 +7,7 @@ class MigrateTranslateable<%= table_name.capitalize + field_name.capitalize %> <
         UPDATE <%= table_name %> AS m1
         SET <%= field_name + '_t' %> = (
           SELECT row_to_json(t) FROM (
-            SELECT <%= field_name %> AS <%= locale %> FROM <%= table_name %> AS m2 WHERE m1.id = m2.id
+            SELECT <%= field_name %> AS "<%= locale %>" FROM <%= table_name %> AS m2 WHERE m1.id = m2.id
           ) t
         )::jsonb;
         SQL
@@ -23,7 +23,7 @@ class MigrateTranslateable<%= table_name.capitalize + field_name.capitalize %> <
         execute <<-SQL
         UPDATE <%= table_name %> AS m1
         SET <%= field_name + '_t' %> = (
-          SELECT <%= field_name %>->>'<%= locale %>' AS <%= field_name %> FROM <%= table_name %> AS m2 WHERE m1.id = m2.id
+          SELECT COALESCE(<%= field_name %>->>'<%= locale %>', '') FROM <%= table_name %> AS m2 WHERE m1.id = m2.id
         );
         SQL
         remove_column :<%= table_name %>, :<%= field_name %>

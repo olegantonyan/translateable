@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Oleg Antonyan']
   spec.email         = ['oleg.b.antonyan@gmail.com']
 
-  spec.summary       = 'Allows to store text data in different languages.'
-  spec.description   = "Similar to globalize, but uses PostgreSQL's JSONB to store data in a single field. No additional tables required. Very thin abstraction"
+  spec.summary       = 'Stores text data in multiple languages.'
+  spec.description   = "Similar to globalize, but uses PostgreSQL's JSONB to store data in a single field. No additional tables required. A very thin abstraction."
   spec.homepage      = 'https://github.com/olegantonyan/translateable'
   spec.license       = 'MIT'
 
@@ -19,6 +19,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = %w(lib)
 
   spec.add_development_dependency 'bundler'
+  spec.add_development_dependency 'railties'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec'
 

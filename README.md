@@ -140,6 +140,12 @@ end
 ```
 Now you can add/delete/update the `title` attribute value in different languages via a single form.
 
+A plain field works too and edits the current locale's text, also when the form is re-rendered after a failed validation:
+```haml
+= form_for @post do |f|
+  = f.text_field :title
+```
+
 ### Migration
 
 Attributes must exist with the `JSONB` type in the database, so create a migration:

@@ -76,6 +76,13 @@ module Translateable
       define_method("#{attr}=") do |arg|
         self[attr] = arg.respond_to?(:to_hash) ? arg.to_hash : (self[attr] || {}).merge(I18n.locale.to_s => arg)
       end
+
+      # Rails form helpers read <attr>_before_type_cast for user-assigned values, e.g. when
+      # re-rendering a form after a failed validation. Without this they would show the raw
+      # JSONB hash instead of the current locale's text (#10).
+      define_method("#{attr}_before_type_cast") do
+        send(attr)
+      end
     end
   end
 end

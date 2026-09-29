@@ -332,4 +332,42 @@ describe Translateable do
       expect(html).to include('name="test_model[title_translateable_attributes][1][data]"', 'value="привет"')
     end
   end
+
+  describe 'plain form fields' do
+    def render_fields(object)
+      ActionView::Base.empty.fields_for(:test_model, object) do |f|
+        f.text_field(:title) + f.text_area(:body)
+      end
+    end
+
+    it 'show the current locale for a loaded record' do
+      object = TestModel.find(TestModel.create!(title: { en: 'hello', ru: 'привет' }).id)
+      html = I18n.with_locale(:ru) { render_fields(object) }
+
+      expect(html).to include('value="привет"')
+    end
+
+    it 'show the assigned text when re-rendered after a failed validation' do
+      object = TestModel.new(title: 'hello', body: 'world')
+      html = render_fields(object)
+
+      expect(html).to include('value="hello"', ">\nworld</textarea>")
+      expect(html).not_to include('&quot;en&quot;')
+    end
+
+    it 'show the text assigned for the current locale among others' do
+      object = TestModel.create!(title: 'hello')
+      html = I18n.with_locale(:de) do
+        object.title = 'hallo'
+        render_fields(object)
+      end
+
+      expect(html).to include('value="hallo"')
+      expect(object[:title]).to eq('en' => 'hello', 'de' => 'hallo')
+    end
+
+    it 'leave before_type_cast of non-translateable attributes alone' do
+      expect(TestModel.new(id: '42').id_before_type_cast).to eq '42'
+    end
+  end
 end
